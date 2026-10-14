@@ -33,7 +33,8 @@ function __splitting_print_polynomial_vector(
     polys::AbstractVector;
     factorized::Bool=false
 )
-    print(io, string(eltype(polys)), "[")
+    show(IOContext(io, :module => @__MODULE__), eltype(polys))
+    print(io, "[")
     for (i, p) in enumerate(polys)
         i > 1 && print(io, ", ")
         print(io, factorized ? __splitting_factor_display(p) : string(p))
@@ -78,10 +79,13 @@ end
 #####  Printing splitting results
 ###############################################################################
 
+__read_system_vectors(s::AlgebraicSystem) = __algebraic_read_system(s)
+__read_system_vectors(s::AbstractActionSystem) = __action_read_system(s)
+
 function print_splitting_result(branches::AbstractVector{<:Union{AlgebraicSystem,AbstractActionSystem}}; io::IO=stdout)
     isempty(branches) && (println(io, "[]"); return nothing)
     __require_same_parent(branches)
-    return print_splitting_result(system_to_vectors(branches); io)
+    return print_splitting_result([__read_system_vectors(branch) for branch in branches]; io)
 end
 
 function Base.show(io::IO, system::AlgebraicSystem)
@@ -98,9 +102,8 @@ end
 
 function Base.show(io::IO, system::DifferenceSystem)
     data = getfield(system, :_data)
-    print(io, "DifferenceSystem(", length(data.equations), " equations, ", length(data.inequations),
-        " inequations; quasi_simple = ", system.quasi_simple, ")",
-    )
+    print(io, "DifferenceSystem(", length(data.equations), " equations, ",
+          length(data.inequations), " inequations)")
 end
 
 function Base.show(io::IO, system::DifferentialSystem)
